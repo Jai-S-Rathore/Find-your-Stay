@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { MapPin, Instagram, Twitter, Facebook, Mail } from "lucide-react"
+import { CurrencySelector } from "./currency-selector"
 
 const footerLinks = {
   company: [
@@ -152,9 +153,7 @@ export function Footer() {
               <button className="text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground">
                 English (US)
               </button>
-              <button className="text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground">
-                $ USD
-              </button>
+              <CurrencySelector />
             </div>
           </div>
         </div>
