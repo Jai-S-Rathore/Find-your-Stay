@@ -1,21 +1,31 @@
 "use client"
 
 import { useState } from "react"
-import { StayCard, type StayType } from "@/components/stay-card"
+import { StayCard, type StayType, type StayCardProps } from "@/components/stay-card"
 import { Button } from "@/components/ui/button"
 
-const stays = [
+const stays: Omit<StayCardProps, "onCall" | "callsRemaining">[] = [
   {
     id: 1,
     image: "/images/stay-1.jpg",
     title: "Oceanfront Villa with Infinity Pool",
     location: "Malibu, California",
     type: "Resort" as StayType,
-    priceRange: "$350–$450",
-    rating: 4.9,
-    reviewCount: 128,
-    bookingUrl: "https://booking.com",
-    platform: "Booking.com",
+    prices: [
+      { platform: "Google", price: "$380", logo: "" },
+      { platform: "Airbnb", price: "$420", logo: "" },
+      { platform: "MakeMyTrip", price: "$395", logo: "" },
+    ],
+    ratings: [
+      { platform: "Google", rating: 4.8, reviewCount: 156 },
+      { platform: "Airbnb", rating: 4.9, reviewCount: 89 },
+      { platform: "MakeMyTrip", rating: 4.7, reviewCount: 45 },
+    ],
+    hostContact: {
+      phone: "+1-310-555-0123",
+      email: "oceanvilla@stays.com",
+      whatsapp: "+13105550123",
+    },
   },
   {
     id: 2,
@@ -23,11 +33,21 @@ const stays = [
     title: "Cozy Mountain Cabin Retreat",
     location: "Aspen, Colorado",
     type: "Airbnb" as StayType,
-    priceRange: "$180–$280",
-    rating: 4.8,
-    reviewCount: 94,
-    bookingUrl: "https://airbnb.com",
-    platform: "Airbnb",
+    prices: [
+      { platform: "Google", price: "$220", logo: "" },
+      { platform: "Airbnb", price: "$195", logo: "" },
+      { platform: "MakeMyTrip", price: "$245", logo: "" },
+    ],
+    ratings: [
+      { platform: "Google", rating: 4.7, reviewCount: 78 },
+      { platform: "Airbnb", rating: 4.9, reviewCount: 124 },
+      { platform: "MakeMyTrip", rating: 4.6, reviewCount: 32 },
+    ],
+    hostContact: {
+      phone: "+1-970-555-0456",
+      email: "mountaincabin@stays.com",
+      whatsapp: "+19705550456",
+    },
   },
   {
     id: 3,
@@ -35,11 +55,21 @@ const stays = [
     title: "Modern City Penthouse Suite",
     location: "New York City, NY",
     type: "Hotel" as StayType,
-    priceRange: "$420–$520",
-    rating: 4.7,
-    reviewCount: 156,
-    bookingUrl: "https://hotels.com",
-    platform: "Hotels.com",
+    prices: [
+      { platform: "Google", price: "$450", logo: "" },
+      { platform: "Airbnb", price: "$520", logo: "" },
+      { platform: "MakeMyTrip", price: "$485", logo: "" },
+    ],
+    ratings: [
+      { platform: "Google", rating: 4.6, reviewCount: 234 },
+      { platform: "Airbnb", rating: 4.5, reviewCount: 67 },
+      { platform: "MakeMyTrip", rating: 4.8, reviewCount: 89 },
+    ],
+    hostContact: {
+      phone: "+1-212-555-0789",
+      email: "penthouse@stays.com",
+      whatsapp: "+12125550789",
+    },
   },
   {
     id: 4,
@@ -47,11 +77,21 @@ const stays = [
     title: "Charming Countryside Cottage",
     location: "Cotswolds, England",
     type: "Airbnb" as StayType,
-    priceRange: "$120–$185",
-    rating: 4.9,
-    reviewCount: 72,
-    bookingUrl: "https://airbnb.com",
-    platform: "Airbnb",
+    prices: [
+      { platform: "Google", price: "$145", logo: "" },
+      { platform: "Airbnb", price: "$125", logo: "" },
+      { platform: "MakeMyTrip", price: "$160", logo: "" },
+    ],
+    ratings: [
+      { platform: "Google", rating: 4.9, reviewCount: 56 },
+      { platform: "Airbnb", rating: 4.9, reviewCount: 98 },
+      { platform: "MakeMyTrip", rating: 4.8, reviewCount: 23 },
+    ],
+    hostContact: {
+      phone: "+44-1234-567890",
+      email: "cottage@stays.com",
+      whatsapp: "+441234567890",
+    },
   },
   {
     id: 5,
@@ -59,11 +99,21 @@ const stays = [
     title: "Overwater Bungalow Paradise",
     location: "Maldives",
     type: "Resort" as StayType,
-    priceRange: "$700–$890",
-    rating: 5.0,
-    reviewCount: 203,
-    bookingUrl: "https://expedia.com",
-    platform: "Expedia",
+    prices: [
+      { platform: "Google", price: "$750", logo: "" },
+      { platform: "Airbnb", price: "$890", logo: "" },
+      { platform: "MakeMyTrip", price: "$720", logo: "" },
+    ],
+    ratings: [
+      { platform: "Google", rating: 5.0, reviewCount: 189 },
+      { platform: "Airbnb", rating: 4.9, reviewCount: 45 },
+      { platform: "MakeMyTrip", rating: 5.0, reviewCount: 134 },
+    ],
+    hostContact: {
+      phone: "+960-555-1234",
+      email: "paradise@stays.com",
+      whatsapp: "+9605551234",
+    },
   },
   {
     id: 6,
@@ -71,11 +121,21 @@ const stays = [
     title: "Budget-Friendly City Hostel",
     location: "Barcelona, Spain",
     type: "Hostel" as StayType,
-    priceRange: "$25–$45",
-    rating: 4.5,
-    reviewCount: 312,
-    bookingUrl: "https://hostelworld.com",
-    platform: "Hostelworld",
+    prices: [
+      { platform: "Google", price: "$28", logo: "" },
+      { platform: "Airbnb", price: "$35", logo: "" },
+      { platform: "MakeMyTrip", price: "$32", logo: "" },
+    ],
+    ratings: [
+      { platform: "Google", rating: 4.4, reviewCount: 412 },
+      { platform: "Airbnb", rating: 4.3, reviewCount: 156 },
+      { platform: "MakeMyTrip", rating: 4.5, reviewCount: 89 },
+    ],
+    hostContact: {
+      phone: "+34-93-555-6789",
+      email: "hostel@stays.com",
+      whatsapp: "+34935556789",
+    },
   },
   {
     id: 7,
@@ -83,11 +143,21 @@ const stays = [
     title: "Luxury Beach Resort & Spa",
     location: "Cancun, Mexico",
     type: "Resort" as StayType,
-    priceRange: "$280–$400",
-    rating: 4.8,
-    reviewCount: 245,
-    bookingUrl: "https://booking.com",
-    platform: "Booking.com",
+    prices: [
+      { platform: "Google", price: "$310", logo: "" },
+      { platform: "Airbnb", price: "$380", logo: "" },
+      { platform: "MakeMyTrip", price: "$295", logo: "" },
+    ],
+    ratings: [
+      { platform: "Google", rating: 4.8, reviewCount: 278 },
+      { platform: "Airbnb", rating: 4.7, reviewCount: 89 },
+      { platform: "MakeMyTrip", rating: 4.9, reviewCount: 156 },
+    ],
+    hostContact: {
+      phone: "+52-998-555-4321",
+      email: "luxurybeach@stays.com",
+      whatsapp: "+529985554321",
+    },
   },
   {
     id: 8,
@@ -95,11 +165,21 @@ const stays = [
     title: "Downtown Boutique Hotel",
     location: "Tokyo, Japan",
     type: "Hotel" as StayType,
-    priceRange: "$150–$220",
-    rating: 4.6,
-    reviewCount: 189,
-    bookingUrl: "https://hotels.com",
-    platform: "Hotels.com",
+    prices: [
+      { platform: "Google", price: "$175", logo: "" },
+      { platform: "Airbnb", price: "$210", logo: "" },
+      { platform: "MakeMyTrip", price: "$165", logo: "" },
+    ],
+    ratings: [
+      { platform: "Google", rating: 4.7, reviewCount: 167 },
+      { platform: "Airbnb", rating: 4.6, reviewCount: 78 },
+      { platform: "MakeMyTrip", rating: 4.8, reviewCount: 112 },
+    ],
+    hostContact: {
+      phone: "+81-3-5555-6789",
+      email: "boutique@stays.com",
+      whatsapp: "+81355556789",
+    },
   },
 ]
 
@@ -107,6 +187,15 @@ const filters: StayType[] = ["Hotel", "Hostel", "Resort", "Airbnb"]
 
 export function StaysGrid() {
   const [activeFilter, setActiveFilter] = useState<StayType | "All">("All")
+  const [callsRemaining, setCallsRemaining] = useState(3)
+
+  const handleCall = (stayId: number): boolean => {
+    if (callsRemaining > 0) {
+      setCallsRemaining((prev) => prev - 1)
+      return true
+    }
+    return false
+  }
 
   const filteredStays =
     activeFilter === "All"
@@ -119,15 +208,28 @@ export function StaysGrid() {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-foreground md:text-3xl">
-              Explore Accommodations
+              Compare & Discover Stays
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Find hotels, hostels, resorts, and Airbnb stays
+              Find the best prices across Google, Airbnb, and MakeMyTrip
             </p>
           </div>
-          <button className="text-sm font-medium text-accent hover:underline">
-            View all properties
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5">
+              <span className="text-sm text-muted-foreground">Calls today:</span>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-2 w-4 rounded-full ${
+                      i <= callsRemaining ? "bg-green-500" : "bg-muted-foreground/30"
+                    }`}
+                  />
+                ))}
+                <span className="ml-1 text-sm font-medium text-foreground">{callsRemaining}/3</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mb-8 flex flex-wrap gap-2">
@@ -154,7 +256,12 @@ export function StaysGrid() {
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredStays.map((stay) => (
-            <StayCard key={stay.id} {...stay} />
+            <StayCard
+              key={stay.id}
+              {...stay}
+              onCall={handleCall}
+              callsRemaining={callsRemaining}
+            />
           ))}
         </div>
 
