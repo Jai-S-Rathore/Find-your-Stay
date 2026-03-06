@@ -1,18 +1,31 @@
 "use client"
 
 import Image from "next/image"
-import { Heart, Star } from "lucide-react"
+import { Heart, Star, ExternalLink } from "lucide-react"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+
+export type StayType = "Hotel" | "Hostel" | "Resort" | "Airbnb"
 
 interface StayCardProps {
   id: number
   image: string
   title: string
   location: string
-  type: string
-  price: number
+  type: StayType
+  priceRange: string
   rating: number
   reviewCount: number
+  bookingUrl: string
+  platform: string
+}
+
+const typeColors: Record<StayType, string> = {
+  Hotel: "bg-blue-500/10 text-blue-600 border-blue-200",
+  Hostel: "bg-green-500/10 text-green-600 border-green-200",
+  Resort: "bg-amber-500/10 text-amber-600 border-amber-200",
+  Airbnb: "bg-rose-500/10 text-rose-600 border-rose-200",
 }
 
 export function StayCard({
@@ -20,14 +33,16 @@ export function StayCard({
   title,
   location,
   type,
-  price,
+  priceRange,
   rating,
   reviewCount,
+  bookingUrl,
+  platform,
 }: StayCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
 
   return (
-    <article className="group relative overflow-hidden rounded-xl bg-card transition-shadow hover:shadow-lg">
+    <article className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:shadow-lg">
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={image}
@@ -47,13 +62,16 @@ export function StayCard({
           />
         </button>
         <div className="absolute bottom-3 left-3">
-          <span className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium text-foreground backdrop-blur">
+          <Badge
+            variant="outline"
+            className={`${typeColors[type]} border backdrop-blur`}
+          >
             {type}
-          </span>
+          </Badge>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="truncate font-semibold text-foreground">{title}</h3>
@@ -67,8 +85,20 @@ export function StayCard({
         </div>
 
         <div className="mt-3 flex items-baseline gap-1">
-          <span className="text-lg font-bold text-foreground">${price}</span>
+          <span className="text-lg font-bold text-foreground">{priceRange}</span>
           <span className="text-sm text-muted-foreground">/ night</span>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-border">
+          <Button
+            asChild
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <a href={bookingUrl} target="_blank" rel="noopener noreferrer">
+              Book on {platform}
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
         </div>
       </div>
     </article>

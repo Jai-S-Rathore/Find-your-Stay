@@ -15,7 +15,10 @@ export function Navbar() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <MapPin className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-xl font-bold text-foreground">Find Your Stay</span>
+          <div className="flex flex-col">
+            <span className="text-lg font-bold leading-tight text-foreground">Find Your Stay</span>
+            <span className="text-xs text-muted-foreground">One Stop Stay Finder</span>
+          </div>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

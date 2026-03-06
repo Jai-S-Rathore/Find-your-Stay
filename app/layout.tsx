@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Find Your Stay | Book Unique Accommodations',
-  description: 'Discover and book unique accommodations around the world. From beach villas to mountain cabins, find your perfect stay.',
+  title: 'Find Your Stay – One Stop Stay Finder | Hotels, Hostels, Resorts & More',
+  description: 'Your one stop stay finder. Compare and book hotels, hostels, resorts, and Airbnb stays worldwide. Find your perfect accommodation today.',
   generator: 'v0.app',
   icons: {
     icon: [

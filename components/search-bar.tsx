@@ -12,10 +12,10 @@ export function SearchBar() {
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-            Find your perfect stay
+            Find Your Perfect Stay
           </h1>
           <p className="mt-4 text-pretty text-lg text-muted-foreground md:text-xl">
-            Discover unique accommodations around the world. Book with confidence.
+            Hotels, hostels, resorts, and Airbnb stays — all in one place.
           </p>
         </div>
 

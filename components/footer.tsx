@@ -14,11 +14,11 @@ const footerLinks = {
     { label: "Cancellation Options", href: "#" },
     { label: "Contact Us", href: "#" },
   ],
-  hosting: [
-    { label: "Become a Host", href: "#" },
-    { label: "Host Resources", href: "#" },
-    { label: "Community Forum", href: "#" },
-    { label: "Host Protection", href: "#" },
+  discover: [
+    { label: "Hotels", href: "#" },
+    { label: "Hostels", href: "#" },
+    { label: "Resorts", href: "#" },
+    { label: "Vacation Rentals", href: "#" },
   ],
   legal: [
     { label: "Terms of Service", href: "#" },
@@ -38,11 +38,13 @@ export function Footer() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
                 <MapPin className="h-5 w-5 text-accent-foreground" />
               </div>
-              <span className="text-xl font-bold">Find Your Stay</span>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold leading-tight">Find Your Stay</span>
+                <span className="text-xs text-primary-foreground/70">One Stop Stay Finder</span>
+              </div>
             </Link>
             <p className="mt-4 max-w-xs text-sm text-primary-foreground/70">
-              Discover unique accommodations around the world. From beach villas to
-              mountain cabins, find your perfect stay.
+              Your one-stop destination for finding the perfect accommodation. Compare hotels, hostels, resorts, and vacation rentals worldwide.
             </p>
             <div className="mt-6 flex gap-4">
               <a
@@ -109,9 +111,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-semibold">Hosting</h3>
+            <h3 className="font-semibold">Discover</h3>
             <ul className="mt-4 space-y-3">
-              {footerLinks.hosting.map((link) => (
+              {footerLinks.discover.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
