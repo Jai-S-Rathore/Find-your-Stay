@@ -4,7 +4,11 @@ import { useState } from "react"
 import { Search, MapPin, Calendar, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function SearchBar() {
+interface SearchBarProps {
+  onSearch?: (city: string) => void
+}
+
+export function SearchBar({ onSearch }: SearchBarProps) {
   const [city, setCity] = useState("")
 
   return (
@@ -61,6 +65,13 @@ export function SearchBar() {
             <Button
               size="lg"
               className="mt-2 bg-accent text-accent-foreground hover:bg-accent/90 md:ml-2 md:mt-0 md:rounded-xl"
+              onClick={() => {
+                const trimmed = city.trim()
+                if (trimmed && onSearch) {
+                  onSearch(trimmed)
+                }
+              }}
+              disabled={!city.trim()}
             >
               <Search className="mr-2 h-5 w-5" />
               Search

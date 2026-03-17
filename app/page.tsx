@@ -14,6 +14,7 @@ import type { AggregatedHotelPrice } from "@/components/price-comparison-card"
 export default function HomePage() {
   const [stays, setStays] = useState<Stay[]>([])
   const [priceHotels, setPriceHotels] = useState<AggregatedHotelPrice[]>([])
+  const [searchCity, setSearchCity] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,10 +24,19 @@ export default function HomePage() {
         setLoading(true)
         setError(null)
 
-        const [staysRes, pricesRes] = await Promise.all([
-          fetch("http://localhost:5000/api/stays"),
-          fetch("http://localhost:5000/api/compare-prices?city=Delhi"),
-        ])
+        const cityParam = searchCity && searchCity.trim().length > 0 ? searchCity.trim() : ""
+
+        const staysUrl =
+          cityParam.length > 0
+            ? `http://localhost:5000/api/stays?city=${encodeURIComponent(cityParam)}`
+            : "http://localhost:5000/api/stays"
+
+        const pricesUrl =
+          cityParam.length > 0
+            ? `http://localhost:5000/api/compare-prices?city=${encodeURIComponent(cityParam)}`
+            : `http://localhost:5000/api/compare-prices?city=Delhi`
+
+        const [staysRes, pricesRes] = await Promise.all([fetch(staysUrl), fetch(pricesUrl)])
 
         if (!staysRes.ok) {
           throw new Error(`Failed to fetch stays: ${staysRes.status}`)
@@ -49,14 +59,14 @@ export default function HomePage() {
     }
 
     fetchData()
-  }, [])
+  }, [searchCity])
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
       <main className="flex-1">
-        <SearchBar />
+        <SearchBar onSearch={(city) => setSearchCity(city)} />
 
         {loading && (
           <div className="py-8 text-center text-muted-foreground">

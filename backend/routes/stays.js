@@ -4,8 +4,19 @@ const db = require("../db");
 const router = express.Router();
 
 // GET /api/stays
+// Optional query param: ?city=Delhi to filter by city (case insensitive, partial match)
 router.get("/", async (req, res) => {
+  const city = (req.query.city || "").toString().trim();
+
   try {
+    const params = [];
+    let whereClause = "";
+
+    if (city) {
+      whereClause = "WHERE LOWER(s.city) LIKE LOWER(?)";
+      params.push(`%${city}%`);
+    }
+
     const [rows] = await db.query(
       `SELECT 
         s.id,
@@ -24,7 +35,9 @@ router.get("/", async (req, res) => {
       FROM stays s
       LEFT JOIN stay_prices sp
         ON s.id = sp.stay_id
-      GROUP BY s.id`
+      ${whereClause}
+      GROUP BY s.id`,
+      params
     );
 
     res.json(rows);

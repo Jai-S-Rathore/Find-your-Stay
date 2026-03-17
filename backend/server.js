@@ -29,8 +29,8 @@ app.get("/", (req, res) => {
 
 // Stays API
 app.use("/api/stays", staysRouter);
-// External price comparison API
-app.use("/api/compare-prices", comparePricesRouter);
+// External price comparison API under /api
+app.use("/api", comparePricesRouter);
 
 // Global error handler (fallback)
 app.use((err, req, res, next) => {
