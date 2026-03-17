@@ -1,5 +1,5 @@
 const mysql = require("mysql2/promise");
-
+require('dotenv').config();
 // MySQL connection pool for async/await queries
 const pool = mysql.createPool({
   host: "localhost",
