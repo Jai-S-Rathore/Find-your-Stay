@@ -46,10 +46,9 @@ export default function HomePage() {
         }
 
         const staysData: Stay[] = await staysRes.json()
-        const pricesData: AggregatedHotelPrice[] = await pricesRes.json()
-
+        const pricesData = await pricesRes.json()
         setStays(staysData)
-        setPriceHotels(pricesData)
+        setPriceHotels(pricesData.hotels || [])
       } catch (err) {
         console.error("Error fetching data:", err)
         setError("Unable to load data. Please try again later.")

@@ -51,12 +51,39 @@ function mapStayRowToApi(stayRow, priceRowsByStayId) {
 // GET /api/stays
 async function getAllStays(req, res) {
   try {
+    const city = (req.query.city || "").toString().trim();
+    const type = (req.query.type || "").toString().trim();
+
+    let whereClause = "WHERE 1=1";
+    const params = [];
+
+    if (city) {
+      whereClause += " AND LOWER(s.city) LIKE LOWER(?)";
+      params.push(`%${city}%`);
+    }
+    if (type) {
+      whereClause += " AND LOWER(s.type) = LOWER(?)";
+      params.push(type);
+    }
+
     const [stays] = await db.query(
-      "SELECT id, name, city, type, image_url, overall_rating, host_email, host_phone, host_whatsapp FROM stays"
+      `SELECT s.id, s.name, s.city, s.type, s.image_url, 
+              s.overall_rating, s.host_email, s.host_phone, s.host_whatsapp
+       FROM stays s
+       ${whereClause}`,
+      params
     );
 
+    if (stays.length === 0) {
+      return res.json([]);
+    }
+
+    const stayIds = stays.map((s) => s.id);
     const [priceRows] = await db.query(
-      "SELECT stay_id, platform, price, '' AS logo FROM stay_prices"
+      `SELECT stay_id, platform, price, '' AS logo 
+       FROM stay_prices 
+       WHERE stay_id IN (${stayIds.map(() => "?").join(",")})`,
+      stayIds
     );
 
     const priceRowsByStayId = priceRows.reduce((acc, row) => {
@@ -66,7 +93,6 @@ async function getAllStays(req, res) {
     }, {});
 
     const data = stays.map((row) => mapStayRowToApi(row, priceRowsByStayId));
-
     res.json(data);
   } catch (error) {
     console.error("Error fetching stays:", error);

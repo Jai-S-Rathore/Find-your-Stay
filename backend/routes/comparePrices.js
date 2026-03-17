@@ -1,18 +1,14 @@
-// Route for the hotel price comparison aggregator.
-// When the frontend calls GET /api/compare-prices?city=Delhi
-// this route orchestrates calling all external providers, merging
-// the results, and returning a clean JSON payload.
-
 const express = require("express");
 const { getSerpApiHotels } = require("../services/serpApiService");
 const { getAmadeusHotels } = require("../services/amadeusService");
 const { getBookingHotels } = require("../services/bookingService");
 const { mergeHotels } = require("../services/mergeHotels");
+const db = require("../db");
 
 const router = express.Router();
 
 // GET /api/compare-prices?city=Delhi
-router.get("/compare-prices", async (req, res) => {
+router.get("/", async (req, res) => {
   const city = req.query.city;
 
   if (!city) {
@@ -20,25 +16,56 @@ router.get("/compare-prices", async (req, res) => {
   }
 
   try {
-    // Call all providers in parallel so that the user does not wait
-    // for them sequentially. Promise.allSettled allows partial success.
+    // Fetch external APIs + DB in parallel
     const results = await Promise.allSettled([
       getSerpApiHotels(city),
       getAmadeusHotels(city),
       getBookingHotels(city),
+      db.query(
+        `SELECT s.name, s.overall_rating, s.image_url,
+                sp.platform, sp.price, sp.link
+         FROM stays s
+         LEFT JOIN stay_prices sp ON s.id = sp.stay_id
+         WHERE LOWER(s.city) = LOWER(?)`,
+        [city]
+      ),
     ]);
 
     const allHotels = [];
 
-    results.forEach((result, index) => {
+    // External API results
+    results.slice(0, 3).forEach((result, index) => {
       if (result.status === "fulfilled") {
         allHotels.push(...(result.value || []));
       } else {
-        const source =
-          index === 0 ? "SerpAPI" : index === 1 ? "Amadeus" : "Booking";
-        console.error(`Error fetching hotels from ${source}:`, result.reason);
+        const source = index === 0 ? "SerpAPI" : index === 1 ? "Amadeus" : "Booking";
+        console.warn(`${source} failed:`, result.reason?.message);
       }
     });
+
+    // DB results as fallback
+    if (results[3].status === "fulfilled") {
+      const [dbRows] = results[3].value;
+      const dbMap = {};
+      dbRows.forEach((row) => {
+        if (!dbMap[row.name]) {
+          dbMap[row.name] = {
+            name: row.name,
+            rating: row.overall_rating,
+            image: row.image_url || "/images/default-stay.jpg",
+            prices: [],
+          };
+        }
+        if (row.platform) {
+          dbMap[row.name].prices.push({
+            platform: row.platform,
+            price: row.price,
+            link: row.link,
+          });
+        }
+      });
+      allHotels.push(...Object.values(dbMap));
+    }
 
     const mergedHotels = mergeHotels([allHotels]);
 
@@ -57,4 +84,3 @@ router.get("/compare-prices", async (req, res) => {
 });
 
 module.exports = router;
-
