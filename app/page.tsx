@@ -8,10 +8,11 @@ import { PriceComparisonGrid } from "@/components/price-comparison-grid"
 import { MapSection } from "@/components/map-section"
 import { ReviewSection } from "@/components/review-section"
 import { Footer } from "@/components/footer"
-import type { Stay } from "@/components/stay-card"
-import type { AggregatedHotelPrice } from "@/components/price-comparison-card"
+import { type Stay } from "@/components/stay-card" // Fixed import type
+import { type AggregatedHotelPrice } from "@/components/price-comparison-card" // Fixed import type
 
 export default function HomePage() {
+  // FIXED: Changed StayCard[] to Stay[]
   const [stays, setStays] = useState<Stay[]>([])
   const [priceHotels, setPriceHotels] = useState<AggregatedHotelPrice[]>([])
   const [searchCity, setSearchCity] = useState<string | null>(null)
@@ -26,9 +27,10 @@ export default function HomePage() {
 
         const cityParam = searchCity && searchCity.trim().length > 0 ? searchCity.trim() : ""
 
+        // UPGRADED: Now uses your advanced searchController endpoint!
         const staysUrl =
           cityParam.length > 0
-            ? `http://localhost:5000/api/stays?city=${encodeURIComponent(cityParam)}`
+            ? `http://localhost:5000/api/search?query=${encodeURIComponent(cityParam)}&userId=1` // Passing dummy userId=1 for call limit testing
             : "http://localhost:5000/api/stays"
 
         const pricesUrl =
@@ -45,8 +47,10 @@ export default function HomePage() {
           throw new Error(`Failed to fetch price comparison: ${pricesRes.status}`)
         }
 
+        // FIXED: Changed StayCard[] to Stay[]
         const staysData: Stay[] = await staysRes.json()
         const pricesData = await pricesRes.json()
+        
         setStays(staysData)
         setPriceHotels(pricesData.hotels || [])
       } catch (err) {

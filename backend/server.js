@@ -8,6 +8,9 @@ const staysRouter         = require("./routes/stayRoutes");
 const comparePricesRouter = require("./routes/comparePrices");
 const callLogRouter       = require("./routes/callLogRoutes");
 const reviewRouter        = require("./routes/reviewRoutes");
+const favoriteRouter = require("./routes/favoriteRoutes");
+const searchRouter = require("./routes/searchRoutes");
+const authRouter = require("./routes/authRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,6 +33,9 @@ app.use("/api/stays",          staysRouter);        // GET /api/stays, GET /api/
 app.use("/api/compare-prices", comparePricesRouter); // GET /api/compare-prices?city=
 app.use("/api/call-log",       callLogRouter);       // POST /api/call-log
 app.use("/api/reviews",        reviewRouter);        // POST /api/reviews
+app.use("/api/favorites",     favoriteRouter);
+app.use("/api/search",        searchRouter);
+app.use("/api/auth",         authRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {

@@ -103,38 +103,69 @@ async function getAllStays(req, res) {
   }
 }
 
-// GET /api/stays/:id
+// NEW: GET /api/stays/:id
 async function getStayById(req, res) {
   const { id } = req.params;
 
   try {
-    const [rows] = await db.query(
-      "SELECT id, name, city, type, image_url, overall_rating, host_email, host_phone, host_whatsapp FROM stays WHERE id = ?",
-      [id]
-    );
-
-    if (rows.length === 0) {
+    // 1. Fetch the core stay data
+    const [stayRows] = await db.query("SELECT * FROM stays WHERE id = ?", [id]);
+    if (stayRows.length === 0) {
       return res.status(404).json({ message: "Stay not found" });
     }
+    const stayData = stayRows[0];
 
+    // 2. Fetch all prices for this stay (from stay_prices table)
     const [priceRows] = await db.query(
-      "SELECT stay_id, platform, price, '' AS logo FROM stay_prices WHERE stay_id = ?",
+      "SELECT platform, price, currency, url FROM stay_prices WHERE stay_id = ?",
       [id]
     );
 
-    const priceRowsByStayId = {
-      [id]: priceRows,
+    // 3. (Optional) Fetch video data if you have it
+    const [videoRows] = await db.query(
+      "SELECT video_url FROM stay_videos WHERE stay_id = ?",
+      [id]
+    );
+    const videoUrl = videoRows.length > 0 ? videoRows[0].video_url : null;
+
+    // 4. price comparrision
+   const comparisonData = await getHotelComparison(stayData.name, stayData.city);
+
+   res.json({
+  ...stayData,
+  // Map the Makcorps data to the 'prices' format your frontend expects
+  prices: comparisonData?.comparison?.map(vendor => ({
+    platform: vendor.vendor,
+    price: vendor.price,
+    url: vendor.url // Some tiers provide the direct booking link
+  })) || []
+});
+
+    // Construct the full object
+    const finalStay = {
+      id: stayData.id,
+      title: stayData.name,
+      location: stayData.city,
+      type: stayData.type,
+      image: stayData.image_url,
+      overallRating: stayData.overall_rating,
+      address: stayData.address,
+      description: stayData.description,
+      latitude: stayData.latitude,
+      longitude: stayData.longitude,
+      video: videoUrl, // Add the video link
+      prices: priceRows, // Array of prices from different platforms
+      hostContact: {
+        phone: stayData.host_phone, // Need to make this unique
+        email: stayData.host_email,
+        whatsapp: stayData.host_whatsapp,
+      },
     };
 
-    const stay = mapStayRowToApi(rows[0], priceRowsByStayId);
-
-    res.json(stay);
+    res.json(finalStay);
   } catch (error) {
-    console.error("Error fetching stay by id:", error);
-    res.status(500).json({
-      message: "Failed to fetch stay details",
-      error: error.message,
-    });
+    console.error("Error fetching stay details:", error);
+    res.status(500).json({ message: "Failed to fetch stay details" });
   }
 }
 
