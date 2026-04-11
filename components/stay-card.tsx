@@ -3,144 +3,110 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Star, Heart } from "lucide-react"
+import { Heart, Star, MapPin } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/components/AuthContext" // Imports your real auth!
 
-// FIXED: Restored the full Stay interface so the UI doesn't break
 export interface Stay {
   id: number
   title: string
   location: string
-  type: string
+  rating: number
   image: string
-  prices: Array<{
-    platform: string
-    price: number
-    logo?: string
-  }>
-  ratings: Array<{
-    platform: string
-    rating: number
-    reviewCount: number
-  }>
-  hostContact: {
-    phone: string
-    email: string
-    whatsapp: string
-  }
+  prices?: { platform: string; price: string | number; logo?: string }[]
 }
 
-// FIXED: Restored component name to StayCard
 export function StayCard({ stay }: { stay: Stay }) {
   const [isFavorite, setIsFavorite] = useState(false)
-  const DUMMY_USER_ID = 1; // We will replace this when auth is built
+  const { user } = useAuth() // Gets the logged-in user
 
-  // Fetch initial favorite status
   useEffect(() => {
-    fetch(`http://localhost:5000/api/favorites/${DUMMY_USER_ID}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.includes(stay.id)) {
-          setIsFavorite(true);
-        }
-      })
-      .catch(err => console.error("Failed to load favorites", err));
-  }, [stay.id]);
+    // Only check favorites if someone is actually logged in
+    if (user?.id) {
+      checkFavoriteStatus()
+    } else {
+      setIsFavorite(false)
+    }
+  }, [user?.id, stay.id])
 
-  const toggleFavorite = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation if the card is wrapped in a Link
+  const checkFavoriteStatus = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/favorites/toggle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: DUMMY_USER_ID, stayId: stay.id })
-      });
-      const data = await res.json();
-      setIsFavorite(data.isFavorite);
+      const res = await fetch(`http://localhost:5000/api/favorites/${user?.id}`)
+      if (res.ok) {
+        const favorites = await res.json()
+        setIsFavorite(favorites.some((fav: any) => fav.stay_id === stay.id))
+      }
     } catch (error) {
-      console.error("Failed to toggle favorite", error);
+      console.error("Failed to check favorite status", error)
     }
   }
 
-  // Get the lowest price across all platforms
-  const lowestPrice =
-    stay.prices && stay.prices.length > 0
-      ? Math.min(...stay.prices.map((p) => Number(p.price) || 0))
-      : null
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevents clicking the heart from opening the stay details page
+    e.stopPropagation();
+    
+    if (!user) {
+      alert("Please log in or sign up to save favorites!")
+      return
+    }
 
-  // Get the rating from the ratings array
-  const rating =
-    stay.ratings && stay.ratings.length > 0
-      ? stay.ratings[0].rating
-      : null
+    try {
+      const res = await fetch("http://localhost:5000/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, stayId: stay.id })
+      })
+
+      if (res.ok) {
+        setIsFavorite(!isFavorite)
+      }
+    } catch (error) {
+      console.error("Failed to toggle favorite", error)
+    }
+  }
 
   return (
-    // Wrap the entire article in a Link component pointing to /stays/ID
     <Link href={`/stays/${stay.id}`} className="block h-full cursor-pointer">
-    <article className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:shadow-lg">
-      <div className="relative 'aspect-[4/3] overflow-hidden">
-        <Image
-          src={stay.image || "/images/default-stay.jpg"}
-          alt={stay.title || "Stay image"}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+      <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:shadow-lg hover:border-accent">
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <Image 
+            src={stay.image || "/images/default-stay.jpg"} 
+            alt={stay.title} 
+            fill 
+            className="object-cover transition-transform duration-300 group-hover:scale-105" 
+            unoptimized
+          />
+          
+          <button 
+            onClick={toggleFavorite}
+            className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-colors hover:bg-background"
+          >
+            <Heart className={`h-4 w-4 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : "text-foreground"}`} />
+          </button>
+        </div>
         
-        {/* NEW HEART BUTTON */}
-        <button 
-          onClick={toggleFavorite}
-          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm transition-colors hover:bg-background"
-        >
-          <Heart className={`h-4 w-4 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : "text-foreground"}`} />
-        </button>
-      </div>
-
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="font-bold leading-tight text-foreground line-clamp-1">
-              {stay.title}
-            </h3>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {stay.location}
-            </p>
+        <div className="flex flex-1 flex-col p-4">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h3 className="font-bold line-clamp-1">{stay.title}</h3>
+              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                <MapPin size={12} /> {stay.location}
+              </p>
+            </div>
+            <Badge variant="secondary" className="flex items-center gap-1 shrink-0 bg-red-50 text-red-600 hover:bg-red-100 border-0">
+              <Star className="h-3 w-3 fill-current" />
+              {stay.rating || "N/A"}
+            </Badge>
           </div>
-          <div className="flex shrink-0 items-center gap-1 rounded-lg bg-accent/10 px-2 py-1">
-            <Star className="h-4 w-4 fill-accent text-accent" />
-            <span className="text-sm font-bold text-foreground">
-              {rating !== null ? rating.toFixed(1) : "N/A"}
+
+          <div className="mt-4 pt-4 border-t border-border mt-auto flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Starting from</span>
+            <span className="font-bold text-lg">
+              {stay.prices && stay.prices[0] ? `₹${stay.prices[0].price}` : "View Prices"}
             </span>
           </div>
         </div>
-
-        {/* Platform price badges */}
-        {stay.prices && stay.prices.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {stay.prices.slice(0, 3).map((p, i) => (
-              <span
-                key={`${p.platform}-${i}`}
-                className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-              >
-                {p.platform}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-3 flex items-baseline gap-1">
-          <span className="text-sm text-muted-foreground">From</span>
-          {lowestPrice !== null && lowestPrice > 0 ? (
-            <span className="text-lg font-bold text-foreground">
-              ₹{lowestPrice.toLocaleString("en-IN")}
-            </span>
-          ) : (
-            <span className="text-lg font-bold text-muted-foreground">
-              On request
-            </span>
-          )}
-          <span className="text-sm text-muted-foreground">/night</span>
-        </div>
-      </div>
-    </article>
+      </article>
     </Link>
   )
 }

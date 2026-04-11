@@ -78,7 +78,7 @@ export default function StayDetailsPage() {
               </div>
               <div className="flex items-center gap-1 bg-accent/10 px-3 py-2 rounded-xl border border-accent/20">
                 <Star className="h-5 w-5 fill-accent text-accent" />
-                <span className="text-xl font-bold">{stay.overall_rating || "N/A"}</span>
+                <span className="text-xl font-bold">{stay.rating || "N/A"}</span>
               </div>
             </div>
 

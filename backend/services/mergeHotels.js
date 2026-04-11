@@ -1,59 +1,79 @@
 // Service responsible for merging hotel lists from different providers,
 // removing duplicates, and sorting by lowest price.
 //
-// Duplicate detection uses a composite key of lowercased hotel name + location.
+// Duplicate detection uses lowercased hotel name.
+// ✅ KEY FIX: All platform prices are kept (not just the cheapest)
+//    because this is a COMPARISON platform — users need to see all options.
 
 function mergeHotels(hotelArrays) {
-  const flat = hotelArrays.flat().filter(Boolean);
+  // ✅ Works whether called with flat array or array-of-arrays
+  const flat = Array.isArray(hotelArrays[0])
+    ? hotelArrays.flat().filter(Boolean)
+    : hotelArrays.filter(Boolean);
 
   const byKey = new Map();
 
   for (const hotel of flat) {
     if (!hotel || !hotel.name) continue;
-    const nameKey = hotel.name.trim().toLowerCase();
-    const locationKey = (hotel.location || "").trim().toLowerCase();
-    const key = `${nameKey}|${locationKey}`;
+
+    const key = hotel.name.trim().toLowerCase();
 
     if (!byKey.has(key)) {
-      byKey.set(key, { ...hotel });
-    } else {
-      const existing = byKey.get(key);
+      // First time seeing this hotel — create entry with prices array
+      byKey.set(key, {
+        name:     hotel.name.trim(),
+        rating:   hotel.rating ?? null,
+        image:    hotel.image || "/images/default-stay.jpg",
+        location: hotel.location || null,
+        prices:   [],
+      });
+    }
 
-      // Keep the lowest price seen so far
-      const existingPrice =
-        typeof existing.price === "number" ? existing.price : Number.POSITIVE_INFINITY;
-      const newPrice =
-        typeof hotel.price === "number" ? hotel.price : Number.POSITIVE_INFINITY;
+    const existing = byKey.get(key);
 
-      if (newPrice < existingPrice) {
-        existing.price = hotel.price;
-        existing.source = hotel.source;
-        existing.bookingUrl = hotel.bookingUrl;
-      }
+    // ✅ Accumulate ALL platform prices (core feature of comparison platform)
+    const platformName = hotel.source || hotel.platform || "Unknown";
+    const alreadyHas   = existing.prices.some((p) => p.platform === platformName);
 
-      // Prefer non-null rating and image
-      if (existing.rating == null && hotel.rating != null) {
-        existing.rating = hotel.rating;
-      }
-      if (!existing.image && hotel.image) {
-        existing.image = hotel.image;
-      }
+    if (!alreadyHas && hotel.price != null) {
+      existing.prices.push({
+        platform: platformName,
+        price:    hotel.price,
+        link:     hotel.bookingUrl || hotel.link || "#",
+      });
+    }
+
+    // Keep best rating and image across all sources
+    if (existing.rating == null && hotel.rating != null) {
+      existing.rating = hotel.rating;
+    }
+    if (
+      (!existing.image || existing.image === "/images/default-stay.jpg") &&
+      hotel.image &&
+      hotel.image !== "/images/default-stay.jpg"
+    ) {
+      existing.image = hotel.image;
     }
   }
 
   const merged = Array.from(byKey.values());
 
-  // Sort hotels by price ascending, putting null/NaN prices at the end.
-  merged.sort((a, b) => {
-    const priceA = typeof a.price === "number" ? a.price : Number.POSITIVE_INFINITY;
-    const priceB = typeof b.price === "number" ? b.price : Number.POSITIVE_INFINITY;
-    return priceA - priceB;
-  });
-
-  return merged;
+  // ✅ Add lowest_price field and sort prices within each hotel cheapest first
+  return merged
+    .map((hotel) => ({
+      ...hotel,
+      prices: hotel.prices.sort((a, b) => a.price - b.price),
+      lowest_price: hotel.prices.length
+        ? Math.min(...hotel.prices.map((p) => p.price))
+        : null,
+    }))
+    .filter((h) => h.prices.length > 0) // ✅ Remove hotels with no prices at all
+    .sort((a, b) => {
+      // Sort by lowest_price ascending, nulls go to end
+      const pa = a.lowest_price ?? Number.POSITIVE_INFINITY;
+      const pb = b.lowest_price ?? Number.POSITIVE_INFINITY;
+      return pa - pb;
+    });
 }
 
-module.exports = {
-  mergeHotels,
-};
-
+module.exports = { mergeHotels };

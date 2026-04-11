@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -11,6 +12,7 @@ const reviewRouter        = require("./routes/reviewRoutes");
 const favoriteRouter = require("./routes/favoriteRoutes");
 const searchRouter = require("./routes/searchRoutes");
 const authRouter = require("./routes/authRoutes");
+const favoriteRoutes = require("./routes/favoriteRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +38,7 @@ app.use("/api/reviews",        reviewRouter);        // POST /api/reviews
 app.use("/api/favorites",     favoriteRouter);
 app.use("/api/search",        searchRouter);
 app.use("/api/auth",         authRouter);
+app.use("/api/favorites", favoriteRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
